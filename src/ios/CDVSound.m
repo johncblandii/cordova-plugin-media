@@ -465,10 +465,15 @@
     CDVAudioFile* audioFile = [[self soundCache] objectForKey:mediaId];
     NSString* jsString = nil;
 
-    if ((audioFile != nil) && (audioFile.player != nil)) {
+    if ((audioFile != nil) && (audioFile.player != nil || (avPlayer != nil))) {
         NSLog(@"Stopped playing audio sample '%@'", audioFile.resourcePath);
-        [audioFile.player stop];
-        audioFile.player.currentTime = 0;
+        if (audioFile.player != nil) {
+            [audioFile.player stop];
+            audioFile.player.currentTime = 0;
+        } else if (avPlayer != nil) {
+            [self release:command];
+        }
+
         jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%d);", @"cordova.require('cordova-plugin-media.Media').onStatus", mediaId, MEDIA_STATE, MEDIA_STOPPED];
     }  // ignore if no media playing
     if (jsString) {
@@ -812,7 +817,7 @@
             }
         }
     }
-    
+
     [[self soundCache] removeAllObjects];
 }
 
